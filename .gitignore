@@ -1,11 +1,7 @@
 # files
 .DS_Store
 
-
 # dirs
 /results/
-/csvs/
-/mgfs/
-/raw/
 /pfind/
-/b2_treps/
+/samples/

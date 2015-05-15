@@ -47,15 +47,46 @@ class CSVParserForProteinHits
 		count = 0
 		hits.each do |hit|
 			if hit.pep_var_mod.include? modification
+
+				#grab indexes for the positions
+				positions_hash = Hash.new {|h,k| h[k] = [] }
+				positions_seq = hit.pep_var_mod_pos.split(".")[1].split(".")[0]
+				positions_array = positions_seq.split("")
+				positions_array.each_with_index do |item,idx|; positions_hash[item]<<idx+1; end
+				modified_positions = positions_hash['2'].concat(positions_hash['3']).join(",")
+
 				if !hits_count_per_peptide.has_key?(hit.pep_seq)
 					count = 1
-					hits_count_per_peptide[hit.pep_seq] = [hit.prot_acc , hit.prot_desc, count]
+					hits_count_per_peptide[hit.pep_seq] = [hit.prot_acc, hit.prot_desc, count, hit.pep_var_mod, positions_seq, modified_positions]
 				else
 					count += 1
-					hits_count_per_peptide[hit.pep_seq] = [hit.prot_acc , hit.prot_desc, count]
+					hits_count_per_peptide[hit.pep_seq] = [hit.prot_acc, hit.prot_desc, count, hit.pep_var_mod, positions_seq, modified_positions]
 				end
 			end
 			# puts peptide + ": " + hits_count_per_peptide[hit.pep_seq].inspect
+		end
+		return hits_count_per_peptide
+	end
+
+	# return hits as objects
+	def hit_objs_for_mod_pep(peptide, modification)
+		hits = []
+		hits = protein_hits(peptide)
+		hits_count_per_peptide = Hash.new {|h,k| h[k] = [] }
+		count = 0
+		push_hit = []
+		hits.each do |hit|
+			if hit.pep_var_mod.include? modification
+				# count hits
+				if !hits_count_per_peptide.has_key?(hit.pep_seq)
+					count = 1
+					push_hit.push(hit)
+				else
+					count += 1
+					push_hit.push(hit)
+				end
+			end
+			hits_count_per_peptide[peptide] = [push_hit, count]
 		end
 		return hits_count_per_peptide
 	end
